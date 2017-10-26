@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Video Game Gifs</title>
+  <style type="text/css">
+    button,
+    div,
+    form,
+    input {
+      margin: 10px;
+    }
+    div {display: inline-block;}
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>Gaming Gif Search</h1>
+
+    <!-- Rendered buttons will get dumped here  -->
+    <div id="buttons-view"></div>
+
+    <form id="game-form">
+      <label for="game-input">Add a Game/Character</label>
+      <input type="text" id="game-input"><br>
+
+      <!-- Button triggers new game to be added -->
+      <input id="add-game" type="submit" value="Add a Game/Character">
+    </form>
+
+    <div id="gifs-appear-here">
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript">
+      // Initial array of games
+      var games = ["Super Mario Brothers", "Metroid", "Legend of Zelda", "Donkey Kong"];
+
+      // displaygameInfo function re-renders the HTML to display the appropriate content
+      function displayGameGifs() {
+
+        var game = $(this).attr("data-name");
+        var queryURL = "https://api.giphy.com/v1/gifs/search?q=" +
+        game + "&api_key=dc6zaTOxFJmzC&limit=10";
+
+        // Creates AJAX call for the specific game button being clicked
+        $.ajax({
+          url: queryURL,
+          method: "GET"
+        }).done(function(response) {
+          // Storing an array of results in the results variable
+          var results = response.data;
+          console.log(results);
+          // Looping over every result item
+          for (var i = 0; i < results.length; i++) {
+
+            // Only taking action if the photo has an appropriate rating
+            if (results[i].rating !== "r" && results[i].rating !== "pg-13") {
+              // Creating a div with the class "item"
+              var gifDiv = $("<div class='item'>");
+
+              // Storing the result item's rating
+              var rating = results[i].rating;
+
+              // Creating a paragraph tag with the result item's rating
+              var p = $("<p>").text("Rating: " + rating);
+
+              // Creating an image tag
+              var personImage = $("<img>");
+
+              // Giving the image tag an src attribute of a proprty pulled off the
+              // result item
+              personImage.attr("class", "gif");
+              personImage.attr("src", results[i].images.fixed_height_still.url);
+              personImage.attr("data-still", results[i].images.fixed_height_still.url);
+              personImage.attr("data-animate", results[i].images.fixed_height.url);
+              personImage.attr("data-state", "still");
+
+              // Appending the paragraph and personImage we created to the "gifDiv" div we created
+              gifDiv.append(p);
+              gifDiv.append(personImage);
+
+              // Prepending the gifDiv to the "#gifs-appear-here" div in the HTML
+              $("#gifs-appear-here").prepend(gifDiv);
+            }
+          }
+        });
+
+      }
+
+      // Function for displaying game data
+      function renderButtons() {
+
+        // Deletes the games prior to adding new games
+        // (this is necessary otherwise you will have repeat buttons)
+        $("#buttons-view").empty();
+        // Loops through the array of games
+        for (var i = 0; i < games.length; i++) {
+
+          // Then dynamicaly generates buttons for each game in the array
+          // This code $("<button>") is all jQuery needs to create the beginning and end tag. (<button></button>)
+          var a = $("<button>");
+          // Adds a class of game to our button
+          a.addClass("game");
+          // Added a data-attribute
+          a.attr("data-name", games[i]);
+          // Provided the initial button text
+          a.text(games[i]);
+          // Added the button to the buttons-view div
+          $("#buttons-view").append(a);
+        }
+      }
+
+      function pausePlayGifs() {
+        var state = $(this).attr("data-state");
+
+        if (state === "still") {          
+          $(this).attr("src", $(this).attr("data-animate"));
+          $(this).attr("data-state", "animate");
+        } else {
+          $(this).attr("src", $(this).attr("data-still"));
+          $(this).attr("data-state", "still");
+        }
+      };
+
+      // This function handles events where the add game button is clicked
+      $("#add-game").on("click", function(event) {
+        event.preventDefault();
+        // This line of code will grab the input from the textbox
+        var game = $("#game-input").val().trim();
+
+        // The game from the textbox is then added to our array
+        games.push(game);
+        $("#game-input").val("");
+        // Calling renderButtons which handles the processing of our game array
+        renderButtons();
+      });
+
+      // Adding click event listeners to all elements with a class of "game"
+      $(document).on("click", ".game", displayGameGifs);
+      $(document).on("click", ".gif", pausePlayGifs);
+
+      // Calling the renderButtons function to display the intial buttons
+      renderButtons();
+    </script>
+  </div>
+</body>
+
+</html>
