@@ -43,8 +43,10 @@
       function displayGameGifs() {
 
         var game = $(this).attr("data-name");
+        var offset = parseInt(localStorage.getItem($(this).attr("data-offset")));
+        console.log(localStorage.getItem($(this).attr("data-offset")));
         var queryURL = "https://api.giphy.com/v1/gifs/search?q=" +
-        game + "&api_key=dc6zaTOxFJmzC&limit=10";
+        game + "&api_key=dc6zaTOxFJmzC&limit=10&offset=" + offset;
 
         // Creates AJAX call for the specific game button being clicked
         $.ajax({
@@ -87,8 +89,11 @@
               $("#gifs-appear-here").prepend(gifDiv);
             }
           }
-        });
-
+        });        
+          offset += 10;
+          console.log(offset);
+          console.log($(this).attr("data-offset"));
+          localStorage.setItem($(this).attr("data-offset"), offset);
       }
 
       // Function for displaying game data
@@ -107,8 +112,13 @@
           a.addClass("game");
           // Added a data-attribute
           a.attr("data-name", games[i]);
+          a.attr("data-offset", "offset-"+i);
           // Provided the initial button text
           a.text(games[i]);
+          // Create a local storage offset
+          if (localStorage.getItem("offset-" + i) === null) {
+            localStorage.setItem("offset-" + i, 0);
+          }
           // Added the button to the buttons-view div
           $("#buttons-view").append(a);
         }
